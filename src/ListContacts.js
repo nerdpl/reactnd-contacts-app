@@ -1,10 +1,63 @@
 import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import { Link } from 'react-router-dom'
 
 class ListContacts extends Component {
-    render() {
+    static propTypes = {
+        contacts: PropTypes.array.isRequired,
+        onDeleteContact: PropTypes.func.isRequired,
+    }
+    state = {
+        query: ''
+    }
+    
+    updateQuery = (q)=> {
+        this.setState(()=> ({
+            query: q.trim()
+        }))
+    }
+
+    clearQuery = ()=> {
+        this.updateQuery('')
+    }
+
+    render () {
+        const { query } = this.state
+        const { contacts, onDeleteContact } = this.props
+
+        const showingContacts = (query === '') 
+            ? contacts
+            : contacts.filter((c)=> {
+                return c.name.toLowerCase().includes(query.toLowerCase())
+            }) 
+
         return (
-            <ol className='contact-list'>
-                {this.props.contacts.map((contact)=> (
+            <div className='list-contacts'>
+                <div className='list-contacts-top'>
+                    <input 
+                        className='search-contacts'
+                        type='text'
+                        placeholder='Search Contacts'
+                        value={query}
+                        onChange={(event)=> this.updateQuery(event.target.value)}
+                    />
+                    <Link
+                        to='/create'
+                        className='add-contact'
+                        >Add contact
+                    </Link>
+                </div>
+
+                {(showingContacts.length !== contacts.length) && (
+                    <div className='showing-contacts'>
+                        <span>Showing {showingContacts.length} of {contacts.length} contacts</span>
+                        <button onClick={this.clearQuery}>Show All</button>
+                    </div>
+
+                )} 
+
+                <ol className='contact-list'>
+                {showingContacts.map((contact)=> (
                     <li key={contact.id} className='contact-list-item'>
                         <div
                             className='contact-avatar'
@@ -14,16 +67,20 @@ class ListContacts extends Component {
                         ></div>
                         <div className='contact-details'>
                             <p>{contact.name}</p>
-                            <p>@{contact.handle}</p>
+                            <p>{contact.handle}</p>
                         </div>
-                        <button className='contact-remove'>
+                        <button 
+                            className='contact-remove'
+                            onClick={()=> onDeleteContact(contact)}>
                             Remove
                         </button>
                     </li>
                 ))}
-            </ol>
-        )
+                </ol>
+            </div>
+        )    
     }
 }
+
 
 export default ListContacts
